@@ -36,7 +36,7 @@ parser.add_argument('--platform', nargs=1, help='OpenMM platform (default: CUDA 
 parser.add_argument('-i', dest='inpfile', help='Input parameter file', required=True)
 parser.add_argument('-p', dest='topfile', help='Input topology file', required=True)
 parser.add_argument('-c', dest='crdfile', help='Input coordinate file')
-parser.add_argument('-ipdb', dest='pdbfile', help='Input coordinate pdb file',required=True)
+parser.add_argument('-ipdb', dest='pdbfile', help='Input coordinate pdb file')
 parser.add_argument('-t', dest='toppar', help='Input CHARMM-GUI toppar stream file (optional)')
 parser.add_argument('-b', dest='sysinfo', help='Input CHARMM-GUI sysinfo stream file (optional)')
 parser.add_argument('-ff', dest='fftype', help='Input force field type (default: CHARMM)', default='CHARMM')
@@ -61,8 +61,8 @@ top = read_top(args.topfile, args.fftype.upper())
 print('done')
 
 #crd = read_crd(args.crdfile, args.fftype.upper())
-crd = PDBFile(args.pdbfile, args.fftype.upper())
 if args.fftype.upper() == 'CHARMM':
+    crd = PDBFile(args.pdbfile, args.fftype.upper())
     params = read_params(args.toppar)
     top = read_box(top, args.sysinfo) if args.sysinfo else gen_box(top, crd)
 
