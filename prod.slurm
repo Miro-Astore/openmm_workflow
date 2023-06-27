@@ -33,7 +33,7 @@ fi
 fi
 unset __conda_setup
 # <<< conda initialize <<<
-conda activate openmm_hpc2
+conda activate openmm_hpc
 
 init="step3_input"
 equi_prefix="step4_equilibration"
@@ -55,5 +55,5 @@ latest_rst=$(ls -v *.rst | tail -n 1 )
 
 pstep=${equi_prefix}
 #input_param="-t toppar.str -p ${init}.psf -ipdb ${init}.pdb -irst ${pstep}.rst --restart-timer "
-input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c ${init}.rst7 -irst ${pstep}.rst"
-python -u openmm_run.py -i ${prod_prefix}.inp ${input_param} -orst ${istep}.rst -odcd ${istep}.dcd  --platform CUDA | tee ${istep}.out
+input_param=" -ff amber -t toppar.str -p ${init}.parm7 -ipdb ${init}.pdb -irst ${pstep}.rst"
+python -u openmm_scripts/openmm_run.py -i ${prod_prefix}.inp ${input_param} -orst ${istep}.rst -odcd ${istep}.dcd  --platform CUDA | tee ${istep}.out

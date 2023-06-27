@@ -61,8 +61,10 @@ top = read_top(args.topfile, args.fftype.upper())
 print('done')
 
 #crd = read_crd(args.crdfile, args.fftype.upper())
-if args.fftype.upper() == 'CHARMM':
+if args.pdbfile is not None : 
     crd = PDBFile(args.pdbfile, args.fftype.upper())
+
+if args.fftype.upper() == 'CHARMM':
     params = read_params(args.toppar)
     top = read_box(top, args.sysinfo) if args.sysinfo else gen_box(top, crd)
 
