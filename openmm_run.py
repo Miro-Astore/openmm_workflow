@@ -14,6 +14,11 @@ import argparse
 import sys
 import os
 
+import pdb
+import rlcompleter
+
+#pdb.Pdb.complete=rlcompleter.Completer(locals()).complete
+
 from omm_readinputs import *
 from omm_readparams import *
 from omm_vfswitch import *
@@ -22,14 +27,16 @@ from omm_restraints import *
 from omm_rewrap import *
 
 from simtk.unit import *
-from simtk.openmm import *
-from simtk.openmm.app import *
+from openmm import *
+from openmm.app import *
+#from openmmtools import integrators as tools_integrators
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--platform', nargs=1, help='OpenMM platform (default: CUDA or OpenCL)')
 parser.add_argument('-i', dest='inpfile', help='Input parameter file', required=True)
 parser.add_argument('-p', dest='topfile', help='Input topology file', required=True)
-parser.add_argument('-c', dest='crdfile', help='Input coordinate file', required=True)
+parser.add_argument('-c', dest='crdfile', help='Input coordinate file')
+parser.add_argument('-ipdb', dest='pdbfile', help='Input coordinate pdb file',required=True)
 parser.add_argument('-t', dest='toppar', help='Input CHARMM-GUI toppar stream file (optional)')
 parser.add_argument('-b', dest='sysinfo', help='Input CHARMM-GUI sysinfo stream file (optional)')
 parser.add_argument('-ff', dest='fftype', help='Input force field type (default: CHARMM)', default='CHARMM')
@@ -41,23 +48,31 @@ parser.add_argument('-orst', metavar='RSTFILE', dest='orst', help='Output restar
 parser.add_argument('-ochk', metavar='CHKFILE', dest='ochk', help='Output checkpoint file (optional)')
 parser.add_argument('-odcd', metavar='DCDFILE', dest='odcd', help='Output trajectory file (optional)')
 parser.add_argument('-rewrap', dest='rewrap', help='Re-wrap the coordinates in a molecular basis (optional)', action='store_true', default=False)
+parser.add_argument('--restart-timer', dest='restart_timer', help='Choose whether to restart the timer from zero or not.', action='store_true', default=False)
 args = parser.parse_args()
 
 # Load parameters
 print("Loading parameters")
 inputs = read_inputs(args.inpfile)
 
+
+print('making top')
 top = read_top(args.topfile, args.fftype.upper())
-crd = read_crd(args.crdfile, args.fftype.upper())
+print('done')
+
+#crd = read_crd(args.crdfile, args.fftype.upper())
+crd = PDBFile(args.pdbfile, args.fftype.upper())
 if args.fftype.upper() == 'CHARMM':
     params = read_params(args.toppar)
     top = read_box(top, args.sysinfo) if args.sysinfo else gen_box(top, crd)
 
 # Build system
+print("building system")
 nboptions = dict(nonbondedMethod=inputs.coulomb,
                  nonbondedCutoff=inputs.r_off*nanometers,
                  constraints=inputs.cons,
-                 ewaldErrorTolerance=inputs.ewald_Tol)
+                 ewaldErrorTolerance=inputs.ewald_Tol,
+                 hydrogenMass = 4 * amu)
 if inputs.vdw == 'Switch': nboptions['switchDistance'] = inputs.r_on*nanometers
 if inputs.vdw == 'LJPME':  nboptions['nonbondedMethod'] = LJPME
 if inputs.implicitSolvent:
@@ -87,6 +102,8 @@ if inputs.e14scale != 1.0:
 if inputs.pcouple == 'yes':      system = barostat(system, inputs)
 if inputs.rest == 'yes':         system = restraints(system, crd, inputs)
 integrator = LangevinIntegrator(inputs.temp*kelvin, inputs.fric_coeff/picosecond, inputs.dt*picoseconds)
+#integrator = GeodesicBAOABIntegrator(temperature = inputs.temp*kelvin, collision_rate = inputs.fric_coeff/picosecond, timestep =  inputs.dt*picoseconds)
+print('done')
 
 # Set platform
 DEFAULT_PLATFORMS = 'CUDA', 'OpenCL', 'CPU'
@@ -111,7 +128,7 @@ prop = dict(CudaPrecision='single') if platform.getName() == 'CUDA' else dict()
 
 # Build simulation context
 simulation = Simulation(top.topology, system, integrator, platform, prop)
-simulation.context.setPositions(crd.positions)
+
 if args.icrst:
     charmm_rst = read_charmm_rst(args.icrst)
     simulation.context.setPositions(charmm_rst.positions)
@@ -123,6 +140,23 @@ if args.irst:
 if args.ichk:
     with open(args.ichk, 'rb') as f:
         simulation.context.loadCheckpoint(f.read())
+#if args.restart_timer == True:
+#    positions = simulation.context.getState(getPositions=True)
+#    print(type(positions.Positions))
+#    velocities = simulation.context.getState(getVelocities=True)
+#    box_vectors = simulation.context.getSystem().getDefaultPeriodicBoxVectors
+#    del integrator
+#    integrator = LangevinIntegrator(inputs.temp*kelvin, inputs.fric_coeff/picosecond, inputs.dt*picoseconds)
+#    integrator = integrator 
+#    simulation2 = Simulation (top.topology, system, integrator, platform, prop)
+#    simulation.context.setPositions(positions)
+#    simulation.context.setVelocities(velocities)
+#    simulation.context.setPeriodicBoxVectors(box_vectors)
+
+if args.restart_timer == True:
+    simulation.context.setTime (0 * unit.picoseconds)
+
+
 
 # Re-wrap
 if args.rewrap:
