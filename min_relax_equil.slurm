@@ -40,11 +40,12 @@ init="out"
 relax_prefix="min_relax"
 equil_prefix="equil"
 
-# Equilibration
+# minimisation, relaxation
 input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c ${init}.rst7"
 python prep_restraints.py -p ${init}.psf -ipdb ${init}.pdb
 python -u openmm_run.py -i ${relax_prefix}.inp ${input_param} -orst ${relax_prefix}.rst -odcd ${relax_prefix}.dcd 
 
+# equilibration
 input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c ${init}.rst7 -irst ${relax_prefix}.rst --restart-timer" 
 python -u openmm_run.py -i ${equil_prefix}.inp ${input_param} -orst ${equil_prefix}.rst -odcd ${equil_prefix}.dcd 
 source $HOME/.bashrc
