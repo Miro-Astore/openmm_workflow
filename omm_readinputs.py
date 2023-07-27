@@ -10,8 +10,8 @@ Last update: March 29, 2017
 """
 
 from simtk.unit import *
-from simtk.openmm import *
-from simtk.openmm.app import *
+from openmm import *
+from openmm.app import *
 
 class _OpenMMReadInputs():
 

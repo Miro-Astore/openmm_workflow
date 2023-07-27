@@ -11,11 +11,12 @@ module purge
 module load modules/2.1.1-20230405
 
 export MODULEPATH=/mnt/home/gkrawezik/modules/rocky8:$MODULEPATH
-#export OPENMM_CUDA_COMPILER=/mnt/home/gkrawezik/local/rocky8/cuda/12.1/bin/nvcc
-
 module load cuda/12.1
+export OPENMM_CUDA_COMPILER=/mnt/home/gkrawezik/local/rocky8/cuda/12.1/bin/nvcc
+
 #module load cuda/11.8
-export OPENMM_CUDA_COMPILER=/mnt/sw/nix/store/3xpm36w2kcri3j1m5j15hg025my1p4kx-cuda-11.8.0/bin/nvcc
+#export OPENMM_CUDA_COMPILER=/mnt/sw/nix/store/3xpm36w2kcri3j1m5j15hg025my1p4kx-cuda-11.8.0/bin/nvcc
+
 #
 conda deactivate &> /dev/null
 
@@ -35,25 +36,49 @@ unset __conda_setup
 # <<< conda initialize <<<
 conda activate openmm_hpc
 
-init="step3_input"
-equi_prefix="step4_equilibration"
-prod_prefix="step5_production"
+init="out"
+equil_prefix="equil"
+prod_prefix="production"
 prod_step="step5"
-istep="step5_1"
-
-# Equilibration
-#input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c ${init}.rst7"
-#python prep_restraints.py -p ${init}.psf -ipdb ${init}.pdb
-#python -u openmm_run.py -i ${equi_prefix}.inp ${input_param} -orst ${equi_prefix}.rst -odcd ${equi_prefix}.dcd 
-
-# Production
-# The OpenMM check point file (.chk) cannot be used in a different machine environment.
-# So please make sure if you are using the same GPU and CUDA version of machine while doing additional
-# production steps with the check point file.
-
-latest_rst=$(ls -v *.rst | tail -n 1 )
 
 pstep=${equi_prefix}
-#input_param="-t toppar.str -p ${init}.psf -ipdb ${init}.pdb -irst ${pstep}.rst --restart-timer "
-input_param=" -ff amber -t toppar.str -p ${init}.parm7 -ipdb ${init}.pdb -irst ${pstep}.rst"
-python -u openmm_scripts/openmm_run.py -i ${prod_prefix}.inp ${input_param} -orst ${istep}.rst -odcd ${istep}.dcd  --platform CUDA | tee ${istep}.out
+
+if [ ! -e prod_1.rst ] ; 
+then 
+input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c $init.rst7  -irst $equil_prefix.rst --restart-timer "
+python -u openmm_run.py -i ${prod_prefix}.inp ${input_param} -orst prod_1.rst -odcd prod_1.dcd  --platform CUDA --restart-timer | tee prod_1.out 
+else 
+prev_steps=$(ls prod_*\.rst  | wc -l)
+curr_step=$(($prev_steps + 1 ))
+prod_name=prod_$curr_step
+input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c ${init}.rst7  -irst prod_${prev_steps}.rst "
+python -u openmm_run.py -i ${prod_prefix}.inp ${input_param} -orst ${prod_name}.rst -odcd ${prod_name}.dcd  --platform CUDA | tee ${prod_name}.out 
+fi 
+
+nbatch () {
+    sbatch -J $( echo "$(pwd | awk -F/ '{print $(NF-2)$(NF-1)$NF}' | sed "s^_^^g" | sed "s^memb^^g" | sed "s^plumed^^g" | sed "s^CFTR^^g" | sed "s^simreadysystems^^" | sed "s^process_traj^^g"| sed "s^process_equil^^g")$(echo $1 | sed "s^\.pbs^^g"  | sed "s^\.slurm^^g" | sed "s^_^^g" | sed "s^memb^^g"  | sed "s^glob^^g" | sed "s^window^^g" | sed "s^long^^g" | sed "s^mart^^g" )" | tail -c 11 ) $1
+    }
+ 
+line=$(squeue -h -j $SLURM_JOBID -O timeused) # Leading '-' aids parsing.
+line=$(echo -$line)
+parts=( 0 0 0 0 )
+index=3
+while [ ${#line} -gt 0 ]; do
+  parts[${index}]=${line##*[-:]}
+    line=${line%[-:]*}
+      ((index--))
+      done
+root=$(echo ${parts[*]})
+used_d=$(echo $root | awk  '{print $1}')
+used_h=$(echo $root | awk  '{print $2}')
+total_h=$(( $used_d * 24 + $used_h))
+if $total_h
+if [  $total_h -gt 0 ] ;
+then
+echo 'hi'
+nbatch prod.slurm
+fi
+exit
+
+
+

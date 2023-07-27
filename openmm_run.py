@@ -36,7 +36,7 @@ parser.add_argument('--platform', nargs=1, help='OpenMM platform (default: CUDA 
 parser.add_argument('-i', dest='inpfile', help='Input parameter file', required=True)
 parser.add_argument('-p', dest='topfile', help='Input topology file', required=True)
 parser.add_argument('-c', dest='crdfile', help='Input coordinate file')
-parser.add_argument('-ipdb', dest='pdbfile', help='Input coordinate pdb file')
+parser.add_argument('-ipdb', dest='input_pdbfile', help='Input coordinate pdb file')
 parser.add_argument('-t', dest='toppar', help='Input CHARMM-GUI toppar stream file (optional)')
 parser.add_argument('-b', dest='sysinfo', help='Input CHARMM-GUI sysinfo stream file (optional)')
 parser.add_argument('-ff', dest='fftype', help='Input force field type (default: CHARMM)', default='CHARMM')
@@ -60,13 +60,14 @@ print('making top')
 top = read_top(args.topfile, args.fftype.upper())
 print('done')
 
-#crd = read_crd(args.crdfile, args.fftype.upper())
-if args.pdbfile is not None : 
-    crd = PDBFile(args.pdbfile, args.fftype.upper())
+crd = read_crd(args.crdfile, args.fftype.upper())
 
-if args.fftype.upper() == 'CHARMM':
+if args.input_pdbfile is not None : 
+    crd = PDBFile(args.input_pdbfile, args.fftype.upper())
     params = read_params(args.toppar)
     top = read_box(top, args.sysinfo) if args.sysinfo else gen_box(top, crd)
+
+#if args.fftype.upper() == 'CHARMM':
 
 # Build system
 print("building system")
@@ -86,7 +87,8 @@ if inputs.implicitSolvent:
     nboptions['gbsaModel'] = inputs.gbsamodel
 
 if   args.fftype.upper() == 'CHARMM': system = top.createSystem(params, **nboptions)
-elif args.fftype.upper() == 'AMBER':  system = top.createSystem(**nboptions)
+elif args.fftype.upper() == 'AMBER':  
+    system = top.createSystem(**nboptions)
 
 if inputs.vdw == 'Force-switch': system = vfswitch(system, top, inputs)
 if inputs.lj_lrc == 'yes':
@@ -103,7 +105,7 @@ if inputs.e14scale != 1.0:
 
 if inputs.pcouple == 'yes':      system = barostat(system, inputs)
 if inputs.rest == 'yes':         system = restraints(system, crd, inputs)
-integrator = LangevinIntegrator(inputs.temp*kelvin, inputs.fric_coeff/picosecond, inputs.dt*picoseconds)
+integrator = LangevinMiddleIntegrator(inputs.temp*kelvin, inputs.fric_coeff/picosecond, inputs.dt*picoseconds)
 #integrator = GeodesicBAOABIntegrator(temperature = inputs.temp*kelvin, collision_rate = inputs.fric_coeff/picosecond, timestep =  inputs.dt*picoseconds)
 print('done')
 
@@ -129,6 +131,7 @@ print("Using platform:", platform.getName())
 prop = dict(CudaPrecision='single') if platform.getName() == 'CUDA' else dict()
 
 # Build simulation context
+print('building system')
 simulation = Simulation(top.topology, system, integrator, platform, prop)
 
 if args.icrst:
@@ -136,6 +139,9 @@ if args.icrst:
     simulation.context.setPositions(charmm_rst.positions)
     simulation.context.setVelocities(charmm_rst.velocities)
     simulation.context.setPeriodicBoxVectors(charmm_rst.box[0], charmm_rst.box[1], charmm_rst.box[2])
+else:
+    simulation.context.setPositions(crd.positions)
+
 if args.irst:
     with open(args.irst, 'r') as f:
         simulation.context.setState(XmlSerializer.deserialize(f.read()))

@@ -12,8 +12,8 @@ Last update: June 18, 2021
 import os, json
 
 from simtk.unit import *
-from simtk.openmm import *
-from simtk.openmm.app import *
+from openmm import *
+from openmm.app import *
 
 def read_top(filename, fftype='CHARMM'):
     if   fftype == 'CHARMM': top = CharmmPsfFile(filename)

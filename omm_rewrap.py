@@ -14,8 +14,8 @@ import os
 from math import *
 
 from simtk.unit import *
-from simtk.openmm import *
-from simtk.openmm.app import *
+from openmm import *
+from openmm.app import *
 
 def rewrap(simulation):
     bonds = simulation.topology.bonds()
