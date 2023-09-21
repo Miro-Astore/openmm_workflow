@@ -7,8 +7,8 @@ dependencies:
   - mdanalysis
   - openmm
   - numpy
-  - scikit-learn
   - scikit-learn-intelex
+  - scikit-learn
   - pip
   - pip:
       - -e .
