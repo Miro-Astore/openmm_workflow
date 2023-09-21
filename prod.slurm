@@ -58,7 +58,6 @@ else
 
     prod_name=prod_$curr_step
     input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c ${init}.rst7  -irst prod_${prev_steps}.rst "
-    #python -u openmm_equil_pull.py -i ${prod_prefix}.inp ${input_param} -orst ${prod_name}.rst -odcd ${prod_name}.dcd  --platform CUDA | tee ${prod_name}.out 
     python -u openmm_umbrella.py -i ${prod_prefix}.inp ${input_param} -orst ${prod_name}.rst -odcd ${prod_name}.dcd  --platform CUDA 
 
 fi 
