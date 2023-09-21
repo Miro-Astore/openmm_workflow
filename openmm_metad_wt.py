@@ -21,12 +21,12 @@ import rlcompleter
 
 #pdb.Pdb.complete=rlcompleter.Completer(locals()).complete
 
-from omm_readinputs import *
-from omm_readparams import *
-from omm_vfswitch import *
-from omm_barostat import *
-from omm_restraints import *
-from omm_rewrap import *
+from openmm_workflow.utilities.omm_readinputs import *
+from openmm_workflow.utilities.omm_readparams import *
+from openmm_workflow.utilities.omm_vfswitch import *
+from openmm_workflow.utilities.omm_barostat import *
+from openmm_workflow.utilities.omm_restraints import *
+from openmm_workflow.utilities.omm_rewrap import *
 
 from simtk.unit import *
 from openmm import *
