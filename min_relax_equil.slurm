@@ -34,7 +34,7 @@ fi
 fi
 unset __conda_setup
 # <<< conda initialize <<<
-conda activate openmm_hpc
+conda activate openmm_workflow
 
 init="out"
 relax_prefix="min_relax"
@@ -43,11 +43,11 @@ equil_prefix="equil"
 # minimisation, relaxation
 input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c ${init}.rst7"
 python prep_restraints.py -p ${init}.psf -ipdb ${init}.pdb
-python -u openmm_run.py -i ${relax_prefix}.inp ${input_param} -orst ${relax_prefix}.rst -odcd ${relax_prefix}.dcd | tee ${equil_prefix}.out
+python -u openmm_workflow.openmm_run -i ${relax_prefix}.inp ${input_param} -orst ${relax_prefix}.rst -odcd ${relax_prefix}.dcd | tee ${equil_prefix}.out
 
 # equilibration
 input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c ${init}.rst7 -irst ${relax_prefix}.rst --restart-timer" 
-python -u openmm_run.py -i ${equil_prefix}.inp ${input_param} -orst ${equil_prefix}.rst -odcd ${equil_prefix}.dcd  | tee ${equil_prefix}.out
+python -u openmm_workflow.openmm_run -i ${equil_prefix}.inp ${input_param} -orst ${equil_prefix}.rst -odcd ${equil_prefix}.dcd  | tee ${equil_prefix}.out
 
 nbatch () {
     sbatch -J $( echo "$(pwd | awk -F/ '{print $(NF-2)$(NF-1)$NF}' | sed "s^_^^g" | sed "s^memb^^g" | sed "s^plumed^^g" | sed "s^CFTR^^g" | sed "s^simreadysystems^^" | sed "s^process_traj^^g"| sed "s^process_equil^^g")$(echo $1 | sed "s^\.pbs^^g"  | sed "s^\.slurm^^g" | sed "s^_^^g" | sed "s^memb^^g"  | sed "s^glob^^g" | sed "s^window^^g" | sed "s^long^^g" | sed "s^mart^^g" )" | tail -c 11 ) $1

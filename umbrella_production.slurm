@@ -34,7 +34,7 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
-conda activate openmm_hpc2
+conda activate openmm_workflow
 
 n_steps=4
 init="out"
@@ -46,7 +46,7 @@ if [ ! -e prod_1.rst ] ;
 then 
     input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c $init.rst7  -irst $equil_prefix.rst --restart-timer "
     #python -u openmm_equil_pull.py -i ${prod_prefix}.inp ${input_param} -orst prod_1.rst -odcd prod_1.dcd  --platform CUDA --restart-timer | tee prod_1.out 
-    python -u openmm_umbrella.py -i ${prod_prefix}.inp ${input_param} -orst prod_1.rst -odcd prod_1.dcd  --platform CUDA --restart-timer 
+    python -m openmm_workflow.umbrella -i ${prod_prefix}.inp ${input_param} -orst prod_1.rst -odcd prod_1.dcd  --platform CUDA --restart-timer 
 else 
     prev_steps=$(ls prod_*\.rst  | wc -l)
     curr_step=$(($prev_steps + 1 ))
@@ -58,7 +58,7 @@ else
 
     prod_name=prod_$curr_step
     input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c ${init}.rst7  -irst prod_${prev_steps}.rst "
-    python -u openmm_umbrella.py -i ${prod_prefix}.inp ${input_param} -orst ${prod_name}.rst -odcd ${prod_name}.dcd  --platform CUDA 
+    python -m openmm_workflow.umbrella -i ${prod_prefix}.inp ${input_param} -orst ${prod_name}.rst -odcd ${prod_name}.dcd  --platform CUDA 
 
 fi 
 
