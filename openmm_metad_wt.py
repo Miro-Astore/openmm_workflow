@@ -11,8 +11,10 @@ Last update: June 18, 2021
 
 from __future__ import print_function
 import argparse
+import threading
 import sys
 import os
+import numpy as np
 
 import pdb
 import rlcompleter
@@ -29,6 +31,41 @@ from omm_rewrap import *
 from simtk.unit import *
 from openmm import *
 from openmm.app import *
+
+from openmmtools import integrators, states, mcmc
+#from openmmtools.states import ThermodynamicState, SamplerState
+#from openmmtools.collectivevariables import *
+#from openmmtools.metadynamics import *
+
+
+
+
+# Adjust the collective variable definition to use the CenterOfMass difference
+#CenterOfMass_cv = CustomCV ('sqrt ((com1_x-com2_x)^2 +(com1_y-com2_y)^2  + (com1_z-com2_z)^2 )')
+#
+#group1_COM = CenterOfMass_cv(group1_indices)
+#group2_COM = CenterOfMass_cv(group2_indices)
+
+
+#class COMDifference(CollectiveVariable):
+#    def __init__(self, com1, com2):
+#        self.com1 = com1
+#        self.com2 = com2
+#
+#    def _evaluate(self, thermodynamic_state, sampler_state):
+#        com1_value = self.com1._evaluate(thermodynamic_state, sampler_state)
+#        com2_value = self.com2._evaluate(thermodynamic_state, sampler_state)
+#        
+#        return np.linalg.norm(com1_value - com2_value) * unit.nanometers
+#
+#    def _get_standard_deviation(self, thermodynamic_state):
+#        return 0.1 * unit.nanometers
+#
+#cv = COMDifference(group1_COM, group2_COM)
+
+#CustomCVForce('')
+
+
 #from openmmtools import integrators as tools_integrators
 
 parser = argparse.ArgumentParser()
@@ -90,6 +127,25 @@ if   args.fftype.upper() == 'CHARMM': system = top.createSystem(params, **nbopti
 elif args.fftype.upper() == 'AMBER':  
     system = top.createSystem(**nboptions)
 
+# Define your two groups of atoms
+group1_indices = [11278, 11292, 11302, 11324, 11334, 11344, 11355, 11369, 11386]
+group2_indices = [7065, 7079, 7089, 7111, 7121, 7131, 7142, 7156, 7173]
+restraint_force = openmm.CustomCentroidBondForce(2, "40*max(0,distance(g1,g2)-1.5)^2")
+restraint_force.addGroup(group1_indices)
+restraint_force.addGroup(group2_indices)
+system.addForce(restraint_force)
+
+force = openmm.CustomCentroidBondForce(2, "distance(g1,g2)")
+force.addGroup(group1_indices)
+force.addGroup(group2_indices)
+#force = CustomExternalForce('5*(x-1)^2*(x+1)^2 + y^2 + z^2')
+#force.addParticle(0, [])
+#force.addParticle(1, [])
+force.addBond([0, 1], [])
+cv = BiasVariable(force,0.6*unit.nanometers,1.5*unit.nanometers,0.05*unit.nanometers,True)
+#system.addForce(force)
+metadynamics = app.Metadynamics(system, [cv], biasFactor=np.inf, height=0.1*unit.kilojoules_per_mole, temperature=310*kelvin, frequency=500, saveFrequency=inputs.nstdcd, biasDir = 'bias')
+
 if inputs.vdw == 'Force-switch': system = vfswitch(system, top, inputs)
 if inputs.lj_lrc == 'yes':
     for force in system.getForces():
@@ -105,7 +161,9 @@ if inputs.e14scale != 1.0:
 
 if inputs.pcouple == 'yes':      system = barostat(system, inputs)
 if inputs.rest == 'yes':         system = restraints(system, crd, inputs)
-integrator = LangevinMiddleIntegrator(inputs.temp*kelvin, inputs.fric_coeff/picosecond, inputs.dt*picoseconds)
+
+# Define Metadynamics parameters
+
 #integrator = GeodesicBAOABIntegrator(temperature = inputs.temp*kelvin, collision_rate = inputs.fric_coeff/picosecond, timestep =  inputs.dt*picoseconds)
 print('done')
 
@@ -132,7 +190,10 @@ prop = dict(CudaPrecision='single') if platform.getName() == 'CUDA' else dict()
 
 # Build simulation context
 print('building system')
+
+integrator = LangevinMiddleIntegrator(inputs.temp*kelvin, inputs.fric_coeff/picosecond, inputs.dt*picoseconds)
 simulation = Simulation(top.topology, system, integrator, platform, prop)
+#pdb.set_trace()
 
 if args.icrst:
     charmm_rst = read_charmm_rst(args.icrst)
@@ -164,8 +225,6 @@ if args.ichk:
 if args.restart_timer == True:
     simulation.context.setTime (0 * unit.picoseconds)
 
-
-
 # Re-wrap
 if args.rewrap:
     simulation = rewrap(simulation)
@@ -188,9 +247,17 @@ if inputs.gen_vel == 'yes':
     else:
         simulation.context.setVelocitiesToTemperature(inputs.gen_temp)
 
-# Production
-if inputs.nstep > 0:
-    print("\nMD run: %s steps" % inputs.nstep)
+
+
+#cv_index = metadynamics.addCollectiveVariable("cv", force, bond_index)
+#metadynamics.setCollectiveVariableGrid(cv_index, 0.1*unit.nanometers, 0*unit.nanometers, 3.0*unit.nanometers)  # Example grid settings
+#metadynamics.setCollectiveVariablePeriodic(cv_index, False)  # This is distance so not periodic
+
+
+
+#thermostate = ThermodynamicState(system=system, temperature=inputs.temp*kelvin)
+#simulation = MetadynamicsSimulation(thermostate, SamplerState(pdb.positions), cv, metadynamics)
+def checkpoint_dcd  (simulation):
     if inputs.nstdcd > 0:
         if not args.odcd: args.odcd = 'output.dcd'
         simulation.reporters.append(DCDReporter(args.odcd, inputs.nstdcd))
@@ -198,32 +265,46 @@ if inputs.nstep > 0:
         StateDataReporter(sys.stdout, inputs.nstout, step=True, time=True, potentialEnergy=True, temperature=True, progress=True,
                           remainingTime=True, speed=True, totalSteps=inputs.nstep, separator='\t')
     )
+
+def write_restart(simulation):
+    # Write restart file
+    print ('writing restart')
+    if not (args.orst or args.ochk): args.orst = 'output.rst'
+    if args.orst:
+        state = simulation.context.getState( getPositions=True, getVelocities=True )
+        with open(args.orst, 'w') as f:
+            f.write(XmlSerializer.serialize(state))
+    if args.ochk:
+        with open(args.ochk, 'wb') as f:
+            f.write(simulation.context.createCheckpoint())
+    if args.opdb:
+        crd = simulation.context.getState(getPositions=True).getPositions()
+        PDBFile.writeFile(top.topology, crd, open(args.opdb, 'w'))
+
+
+
+
+# Production
+if inputs.nstep > 0:
+    checkpoint_dcd(simulation)
+    #t = threading.Thread(target=checkpoint_dcd)
+    #t.start ()
+    print("\nMD run: %s steps" % inputs.nstep)
     # Simulated annealing?
     if inputs.annealing == 'yes':
         interval = inputs.interval
         temp = inputs.temp_init
         for i in range(inputs.nstep):
             integrator.setTemperature(temp*kelvin)
-            simulation.step(1)
+            #simulation.step(1)
+            metadynamics.step(simulation,1)
             temp += interval
     else:
         count = 0 
         while count < inputs.nstep:
-            simulation.step(inputs.nstdcd)
+            #simulation.step(inputs.nstdcd)
+            metadynamics.step(simulation,steps=inputs.nstdcd)
             count = count + inputs.nstdcd 
 
-            # Write restart file
-            print ('writing restart')
-            if not (args.orst or args.ochk): args.orst = 'output.rst'
-            if args.orst:
-                print()
-                state = simulation.context.getState( getPositions=True, getVelocities=True )
-                with open(args.orst, 'w') as f:
-                    f.write(XmlSerializer.serialize(state))
-            if args.ochk:
-                with open(args.ochk, 'wb') as f:
-                    f.write(simulation.context.createCheckpoint())
-            if args.opdb:
-                crd = simulation.context.getState(getPositions=True).getPositions()
-                PDBFile.writeFile(top.topology, crd, open(args.opdb, 'w'))
-
+            t = threading.Thread(target=write_restart,args=(simulation,))
+            t.start ()

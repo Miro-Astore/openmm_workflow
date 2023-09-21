@@ -21,7 +21,7 @@ export OPENMM_CUDA_COMPILER=/mnt/sw/nix/store/3xpm36w2kcri3j1m5j15hg025my1p4kx-c
 conda deactivate &> /dev/null
 
 # >>> conda initialize >>>
- !! Contents within this block are managed by 'conda init' !!
+# !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/mnt/home/mastore/Software/cluster_conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
@@ -36,53 +36,43 @@ unset __conda_setup
 # <<< conda initialize <<<
 conda activate openmm_hpc2
 
-n_steps=4
+n_steps=10
 init="out"
-equil_prefix="equil_pull"
-prod_prefix="production"
+equil_prefix="equil"
+prod_prefix="equil_pull"
 
-
-if [ ! -e prod_1.rst ] ; 
-then 
-    input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c $init.rst7  -irst $equil_prefix.rst --restart-timer "
-    #python -u openmm_equil_pull.py -i ${prod_prefix}.inp ${input_param} -orst prod_1.rst -odcd prod_1.dcd  --platform CUDA --restart-timer | tee prod_1.out 
-    python -u openmm_umbrella.py -i ${prod_prefix}.inp ${input_param} -orst prod_1.rst -odcd prod_1.dcd  --platform CUDA --restart-timer 
-else 
-    prev_steps=$(ls prod_*\.rst  | wc -l)
-    curr_step=$(($prev_steps + 1 ))
-
-    if [ $curr_step -gt $n_steps ]
-    then
-        /mnt/home/mastore/Software/vmd-1.9.4/lib/vmd/plugins/LINUXAMD64/bin/catdcd5.2/catdcd -o sum_1ns.dcd -stride 50 $(ls -v prod*.dcd)
-    fi
-
-    prod_name=prod_$curr_step
-    input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c ${init}.rst7  -irst prod_${prev_steps}.rst "
-    #python -u openmm_equil_pull.py -i ${prod_prefix}.inp ${input_param} -orst ${prod_name}.rst -odcd ${prod_name}.dcd  --platform CUDA | tee ${prod_name}.out 
-    python -u openmm_umbrella.py -i ${prod_prefix}.inp ${input_param} -orst ${prod_name}.rst -odcd ${prod_name}.dcd  --platform CUDA 
-
-fi 
+input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c $init.rst7  -irst $equil_prefix.rst --restart-timer "
+#python -u openmm_equil_pull.py -i ${prod_prefix}.inp ${input_param} -orst prod_1.rst -odcd prod_1.dcd  --platform CUDA --restart-timer | tee prod_1.out 
+python -u openmm_umbrella.py -i ${prod_prefix}.inp ${input_param} -orst $prod_prefix.rst -odcd $prod_prefix.dcd  --platform CUDA --restart-timer  | tee equil.log 
 
 nbatch () {
     sbatch -J $( echo "$(pwd | awk -F/ '{print $(NF-2)$(NF-1)$NF}' | sed "s^_^^g" | sed "s^memb^^g" | sed "s^plumed^^g" | sed "s^CFTR^^g" | sed "s^simreadysystems^^" | sed "s^process_traj^^g"| sed "s^process_equil^^g")$(echo $1 | sed "s^\.pbs^^g"  | sed "s^\.slurm^^g" | sed "s^_^^g" | sed "s^memb^^g"  | sed "s^glob^^g" | sed "s^window^^g" | sed "s^long^^g" | sed "s^mart^^g" )" | tail -c 11 ) $1
     }
- 
+
+
 line=$(squeue -h -j $SLURM_JOBID -O timeused) # Leading '-' aids parsing.
 line=$(echo -$line)
+
 parts=( 0 0 0 0 )
 index=3
+
 while [ ${#line} -gt 0 ]; do
   parts[${index}]=${line##*[-:]}
     line=${line%[-:]*}
       ((index--))
       done
+
 root=$(echo ${parts[*]})
+
+
 used_d=$(echo $root | awk  '{print $1}')
+
 used_h=$(echo $root | awk  '{print $2}')
+
 total_h=$(( $used_d * 24 + $used_h))
 
-
-#if [  $total_h -gt 0 ] ;
-#then
+if [  $total_h -gt 0 ] ;
+then
     nbatch prod.slurm
-#fi
+fi
+

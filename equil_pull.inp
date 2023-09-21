@@ -1,12 +1,10 @@
 nstep       = 50000000                          # Number of steps to run
 dt          = 0.004                             # Time-step (ps)
-pull_step   = 0                          # Number of steps to run
+pull_step   = 20000000                          # Number of steps to run
 
-reporting_interval = 2500                               # 
-start_pull  = END_PULL_SEED
+reporting_interval      = 2500                               # Number of steps to run
+start_pull  = 0.6 
 end_pull    = END_PULL_SEED 
-#start_pull  = 0.6
-#end_pull    = 0.6 
 pull_strength  =  4000
                                             
 nstout      = 1000                              # Writing output frequency (steps)

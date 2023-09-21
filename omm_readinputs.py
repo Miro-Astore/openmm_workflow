@@ -22,7 +22,12 @@ class _OpenMMReadInputs():
         self.gen_temp         = 300.0                                     # Temperature for generating initial velocities (K)
         self.gen_seed         = None                                      # Seed for generating initial velocities
         self.nstep            = 0                                         # Number of steps to run
+        self.reporting_interval = 500                                         # Number of steps to run
         self.dt               = 0.002                                     # Time-step (ps)
+        self.start_pull       = None                                     # 
+        self.end_pull         = None                                     # 
+        self.pull_step        = None                                     # 
+        self.pull_strength    = None                                     # 
 
         self.nstout           = 100                                       # Writing output frequency (steps)
         self.nstdcd           = 0                                         # Wrtiing coordinates trajectory frequency (steps)
@@ -81,41 +86,46 @@ class _OpenMMReadInputs():
                 except: input_value = None
                 if input_value:
                     if input_param == 'MINI_NSTEP':                     self.mini_nstep       = int(input_value)
-                    if input_param == 'MINI_TOL':                       self.mini_Tol         = float(input_value)
-                    if input_param == 'GEN_VEL':
+                    elif input_param == 'MINI_TOL':                       self.mini_Tol         = float(input_value)
+                    elif input_param == 'GEN_VEL':
                         if input_value.upper() == 'YES':                self.gen_vel          = 'yes'
                         if input_value.upper() == 'NO':                 self.gen_vel          = 'no'
-                    if input_param == 'GEN_TEMP':                       self.gen_temp         = float(input_value)
-                    if input_param == 'GEN_SEED':                       self.gen_seed         = int(input_value)
-                    if input_param == 'NSTEP':                          self.nstep            = int(input_value)
-                    if input_param == 'DT':                             self.dt               = float(input_value)
-                    if input_param == 'NSTOUT':                         self.nstout           = int(input_value)
-                    if input_param == 'NSTDCD':                         self.nstdcd           = int(input_value)
-                    if input_param == 'COULOMB':
+                    elif input_param == 'GEN_TEMP':                       self.gen_temp         = float(input_value)
+                    elif input_param == 'GEN_SEED':                       self.gen_seed         = int(input_value)
+                    elif input_param == 'NSTEP':                          self.nstep            = int(input_value)
+                    elif input_param == 'DT':                             self.dt               = float(input_value)
+                    elif input_param == 'PULL_STRENGTH':                  self.pull_strength    = float(input_value)
+                    elif input_param == 'PULL_STEP':                      self.pull_step        = float(input_value)
+                    elif input_param == 'START_PULL':                     self.start_pull       = float(input_value)
+                    elif input_param == 'END_PULL':                       self.end_pull         = float(input_value)
+                    elif input_param == 'REPORTING_INTERVAL':             self.reporting_interval = float(input_value)
+                    elif input_param == 'NSTOUT':                         self.nstout           = int(input_value)
+                    elif input_param == 'NSTDCD':                         self.nstdcd           = int(input_value)
+                    elif input_param == 'COULOMB':
                         if input_value.upper() == 'NOCUTOFF':           self.coulomb          = NoCutoff
                         if input_value.upper() == 'CUTOFFNONPERIODIC':  self.coulomb          = CutoffNonPeriodic
                         if input_value.upper() == 'CUTOFFPERIODIC':     self.coulomb          = CutoffPeriodic
                         if input_value.upper() == 'EWALD':              self.coulomb          = Ewald
                         if input_value.upper() == 'PME':                self.coulomb          = PME
-                    if input_param == 'EWALD_TOL':                      self.ewald_Tol        = float(input_value)
-                    if input_param == 'VDW':
+                    elif input_param == 'EWALD_TOL':                      self.ewald_Tol        = float(input_value)
+                    elif input_param == 'VDW':
                         if input_value.upper() == 'NOCUTOFF':           self.vdw              = 'NoCutoff'
                         if input_value.upper() == 'CUTOFFPERIODIC':     self.vdw              = 'CutoffPeriodic'
                         if input_value.upper() == 'FORCE-SWITCH':       self.vdw              = 'Force-switch'
                         if input_value.upper() == 'SWITCH':             self.vdw              = 'Switch'
                         if input_value.upper() == 'LJPME':              self.vdw              = 'LJPME'
-                    if input_param == 'R_ON':                           self.r_on             = float(input_value)
-                    if input_param == 'R_OFF':                          self.r_off            = float(input_value)
-                    if input_param == 'LJ_LRC':
+                    elif input_param == 'R_ON':                           self.r_on             = float(input_value)
+                    elif input_param == 'R_OFF':                          self.r_off            = float(input_value)
+                    elif input_param == 'LJ_LRC':
                         if input_value.upper() == 'YES':                self.lj_lrc           = 'yes'
                         if input_value.upper() == 'NO':                 self.lj_lrc           = 'no'
-                    if input_param == 'E14SCALE':                       self.e14scale         = float(input_value)
-                    if input_param == 'TEMP':                           self.temp             = float(input_value)
-                    if input_param == 'FRIC_COEFF':                     self.fric_coeff       = float(input_value)
-                    if input_param == 'PCOUPLE':
+                    elif input_param == 'E14SCALE':                       self.e14scale         = float(input_value)
+                    elif input_param == 'TEMP':                           self.temp             = float(input_value)
+                    elif input_param == 'FRIC_COEFF':                     self.fric_coeff       = float(input_value)
+                    elif input_param == 'PCOUPLE':
                         if input_value.upper() == 'YES':                self.pcouple          = 'yes'
                         if input_value.upper() == 'NO':                 self.pcouple          = 'no'
-                    if input_param == 'P_REF':
+                    elif input_param == 'P_REF':
                         if input_value.find(',') < 0:
                             self.p_ref = float(input_value)
                         else:
@@ -123,11 +133,11 @@ class _OpenMMReadInputs():
                             Pyy = float(input_value.split(',')[1])
                             Pzz = float(input_value.split(',')[2])
                             self.p_ref = Pxx, Pyy, Pzz
-                    if input_param == 'P_TYPE':
+                    elif input_param == 'P_TYPE':
                         if input_value.upper() == 'ISOTROPIC':          self.p_type           = 'isotropic'
                         if input_value.upper() == 'MEMBRANE':           self.p_type           = 'membrane'
                         if input_value.upper() == 'ANISOTROPIC':        self.p_type           = 'anisotropic'
-                    if input_param == 'P_SCALE':
+                    elif input_param == 'P_SCALE':
                         scaleX = True
                         scaleY = True
                         scaleZ = True
@@ -135,48 +145,50 @@ class _OpenMMReadInputs():
                         if input_value.upper().find('Y') < 0: scaleY = False
                         if input_value.upper().find('Z') < 0: scaleZ = False
                         self.p_scale = scaleX, scaleY, scaleZ
-                    if input_param == 'P_XYMODE':
+                    elif input_param == 'P_XYMODE':
                         if input_value.upper() == 'XYISOTROPIC':        self.p_XYMode         = MonteCarloMembraneBarostat.XYIsotropic
                         if input_value.upper() == 'XYANISOTROPIC':      self.p_XYMode         = MonteCarloMembraneBarostat.XYAnisotropic
-                    if input_param == 'P_ZMODE':
+                    elif input_param == 'P_ZMODE':
                         if input_value.upper() == 'ZFREE':              self.p_ZMode          = MonteCarloMembraneBarostat.ZFree
                         if input_value.upper() == 'ZFIXED':             self.p_ZMode          = MonteCarloMembraneBarostat.ZFixed
                         if input_value.upper() == 'CONSTANTVOLUME':     self.p_ZMode          = MonteCarloMembraneBarostat.ConstantVolume
-                    if input_param == 'P_TENS':                         self.p_tens           = float(input_value)
-                    if input_param == 'P_FREQ':                         self.p_freq           = int(input_value)
-                    if input_param == 'CONS':
+                    elif input_param == 'P_TENS':                         self.p_tens           = float(input_value)
+                    elif input_param == 'P_FREQ':                         self.p_freq           = int(input_value)
+                    elif input_param == 'CONS':
                         if input_value.upper() == 'NONE':               self.cons             = None
                         if input_value.upper() == 'HBONDS':             self.cons             = HBonds
                         if input_value.upper() == 'ALLBONDS':           self.cons             = AllBonds
                         if input_value.upper() == 'HANGLES':            self.cons             = HAngles
-                    if input_param == 'REST':
+                    elif input_param == 'REST':
                         if input_value.upper() == 'YES':                self.rest             = 'yes'
                         if input_value.upper() == 'NO':                 self.rest             = 'no'
-                    if input_param == 'FC_BB':                          self.fc_bb            = float(input_value)
-                    if input_param == 'FC_SC':                          self.fc_sc            = float(input_value)
-                    if input_param == 'FC_MPOS':                        self.fc_mpos          = float(input_value)
-                    if input_param == 'FC_LPOS':                        self.fc_lpos          = float(input_value)
-                    if input_param == 'FC_HMMM':                        self.fc_hmmm          = float(input_value)
-                    if input_param == 'FC_DCLE':                        self.fc_dcle          = float(input_value)
-                    if input_param == 'FC_LDIH':                        self.fc_ldih          = float(input_value)
-                    if input_param == 'FC_CDIH':                        self.fc_cdih          = float(input_value)
-                    if input_param == 'FBRES_RFB':                      self.fbres_rfb        = float(input_value)
-                    if input_param == 'ANNEALING':
+                    elif input_param == 'FC_BB':                          self.fc_bb            = float(input_value)
+                    elif input_param == 'FC_SC':                          self.fc_sc            = float(input_value)
+                    elif input_param == 'FC_MPOS':                        self.fc_mpos          = float(input_value)
+                    elif input_param == 'FC_LPOS':                        self.fc_lpos          = float(input_value)
+                    elif input_param == 'FC_HMMM':                        self.fc_hmmm          = float(input_value)
+                    elif input_param == 'FC_DCLE':                        self.fc_dcle          = float(input_value)
+                    elif input_param == 'FC_LDIH':                        self.fc_ldih          = float(input_value)
+                    elif input_param == 'FC_CDIH':                        self.fc_cdih          = float(input_value)
+                    elif input_param == 'FBRES_RFB':                      self.fbres_rfb        = float(input_value)
+                    elif input_param == 'ANNEALING':
                         if input_value.upper() == 'YES':                self.annealing        = 'yes'
-                    if input_param == 'TEMP_INIT':                      self.temp_init        = float(input_value)
-                    if input_param == 'INTERVAL':                       self.interval         = float(input_value)
-                    if input_param == 'IMPLICIT':
+                    elif input_param == 'TEMP_INIT':                      self.temp_init        = float(input_value)
+                    elif input_param == 'INTERVAL':                       self.interval         = float(input_value)
+                    elif input_param == 'IMPLICIT':
                         if input_value.upper() == 'HCT':                self.implicitSolvent  = HCT
                         if input_value.upper() == 'OBC1':               self.implicitSolvent  = OBC1
                         if input_value.upper() == 'OBC2':               self.implicitSolvent  = OBC2
                         if input_value.upper() == 'GBN':                self.implicitSolvent  = GBn
                         if input_value.upper() == 'GBN2':               self.implicitSolvent  = GBn2
-                    if input_param == 'IMPLIC_SALT':                    self.implicit_salt    = float(input_value)
-                    if input_param == 'SOLUT_DIELE':                    self.solut_diele      = float(input_value)
-                    if input_param == 'SOLVE_DIELE':                    self.solve_diele      = float(input_value)
-                    if input_param == 'GBSAMODEL':
+                    elif input_param == 'IMPLIC_SALT':                    self.implicit_salt    = float(input_value)
+                    elif input_param == 'SOLUT_DIELE':                    self.solut_diele      = float(input_value)
+                    elif input_param == 'SOLVE_DIELE':                    self.solve_diele      = float(input_value)
+                    elif input_param == 'GBSAMODEL':
                         if input_value.upper() == 'ACE':                self.gbsamodel        = 'ACE'
                         if input_value.upper() == 'NONE':               self.gbsamodel        = None
+                    else: 
+                        raise ValueError(str(input_param ) + ' is not a valid input parameter')
         return self
 
 def read_inputs(inputFile):
