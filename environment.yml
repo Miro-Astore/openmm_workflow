@@ -1,0 +1,12 @@
+me: openmm_workflow_project_environment
+channels:
+  - defaults
+  - conda-forge  # If you're using the conda-forge channel, or any other channel
+dependencies:
+  - python=3.11
+  - mdanalysis
+  - openmm
+  - numpy
+  - scikit-learn
+  - pip
+
