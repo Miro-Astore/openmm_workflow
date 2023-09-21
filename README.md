@@ -24,7 +24,7 @@ To perform an unbiased molecular dynamics in a slurm environment do the followin
 
 * (optional) edit these files to reflect your desired minimisation, equilibration and unbiased molecular dynamics protocols.
 
-2. Copy the necessary `.slurm` files if you are in a slurm environment. It is *recquired* that you edit these scripts to reflect your hpc and python environments. The scripts included here only serve as examples.   
+2. Copy the necessary `.slurm` files if you are in a slurm environment. It is **recquired** that you edit these scripts to reflect your hpc and python environments. The scripts included here only serve as examples.   
 
 ``cp openmm_workflow/min_relax_equil.slurm . ``
 
