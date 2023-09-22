@@ -39,7 +39,7 @@ conda activate openmm_workflow
 n_steps=10
 init="out"
 equil_prefix="equil"
-prod_prefix="equil_pull"
+prod_prefix="umbrella_equil_pull"
 
 input_param=" -ff amber -t toppar.str -p ${init}.parm7 -c $init.rst7  -irst $equil_prefix.rst --restart-timer "
 python -u openmm_workflow.umbrella -i ${prod_prefix}.inp ${input_param} -orst $prod_prefix.rst -odcd $prod_prefix.dcd  --platform CUDA --restart-timer  | tee equil.log 

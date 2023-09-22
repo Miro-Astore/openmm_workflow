@@ -34,3 +34,12 @@ cp openmm_workflow/unbiased_production.slurm .``
 2. Submit the minimisation and relaxation script which will start the workflow.
 
 ``sbatch min_relax_equil.slurm``
+
+Openmm is extremely flexible, further customisation to the molecular dynamics protocols used in this package can be added by copying the base scripts like `unbiased.py` and `umbrella.py` in the `src` directory of this package.  
+They can then be run in the following way after modification.
+
+``` 
+python customised_openmm_script.py -ff forcefield -i custom_inputs.inp 
+```
+
+To add further inputs to the molecular dynamics environment through the `.inp` interface, any extra parameters need to be reflected by a change in `src/openmm_workflow/utilities/omm_readinputs.py`.

@@ -16,18 +16,21 @@ from openmm.app import *
 class _OpenMMReadInputs():
 
     def __init__(self):
-        self.mini_nstep       = 0                                         # Number of steps for minimization
-        self.mini_Tol         = 1.0                                       # Minimization energy tolerance
-        self.gen_vel          = 'no'                                      # Generate initial velocities
-        self.gen_temp         = 300.0                                     # Temperature for generating initial velocities (K)
-        self.gen_seed         = None                                      # Seed for generating initial velocities
-        self.nstep            = 0                                         # Number of steps to run
-        self.reporting_interval = 500                                         # Number of steps to run
-        self.dt               = 0.002                                     # Time-step (ps)
+        self.mini_nstep       = 0                                        # Number of steps for minimization
+        self.mini_Tol         = 1.0                                      # Minimization energy tolerance
+        self.gen_vel          = 'no'                                     # Generate initial velocities
+        self.gen_temp         = 300.0                                    # Temperature for generating initial velocities (K)
+        self.gen_seed         = None                                     # Seed for generating initial velocities
+        self.nstep            = 0                                        # Number of steps to run
+        self.reporting_interval = 500                                    # Number of steps to run
+        self.dt               = 0.002                                    # Time-step (ps)
         self.start_pull       = None                                     # 
         self.end_pull         = None                                     # 
         self.pull_step        = None                                     # 
         self.pull_strength    = None                                     # 
+        self.pulling_group1    = None                                    # 
+        self.pulling_group2    = None                                    # 
+        self.pulling_out_file = None                                     # 
 
         self.nstout           = 100                                       # Writing output frequency (steps)
         self.nstdcd           = 0                                         # Wrtiing coordinates trajectory frequency (steps)
@@ -95,10 +98,13 @@ class _OpenMMReadInputs():
                     elif input_param == 'NSTEP':                          self.nstep            = int(input_value)
                     elif input_param == 'DT':                             self.dt               = float(input_value)
                     elif input_param == 'PULL_STRENGTH':                  self.pull_strength    = float(input_value)
+                    elif input_param == 'PULLING_OUT_FILE':               self.pulling_out_file = str(input_value)
                     elif input_param == 'PULL_STEP':                      self.pull_step        = float(input_value)
                     elif input_param == 'START_PULL':                     self.start_pull       = float(input_value)
                     elif input_param == 'END_PULL':                       self.end_pull         = float(input_value)
                     elif input_param == 'REPORTING_INTERVAL':             self.reporting_interval = float(input_value)
+                    elif input_param == 'PULLING_GROUP1':                 self.pulling_group1   = [int(item) for item in input_value.split(",") if item.strip()]
+                    elif input_param == 'PULLING_GROUP2':                 self.pulling_group2   = [int(item) for item in input_value.split(",") if item.strip()]
                     elif input_param == 'NSTOUT':                         self.nstout           = int(input_value)
                     elif input_param == 'NSTDCD':                         self.nstdcd           = int(input_value)
                     elif input_param == 'COULOMB':

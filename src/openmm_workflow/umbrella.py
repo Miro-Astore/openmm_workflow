@@ -58,8 +58,6 @@ if args.input_pdbfile is not None :
     params = read_params(args.toppar)
     top = read_box(top, args.sysinfo) if args.sysinfo else gen_box(top, crd)
 
-#if args.fftype.upper() == 'CHARMM':
-
 # Build system
 print("building system")
 nboptions = dict(nonbondedMethod=inputs.coulomb,
@@ -82,8 +80,10 @@ elif args.fftype.upper() == 'AMBER':
     system = top.createSystem(**nboptions)
 
 # Define your two groups of atoms
-group1_indices = [11278, 11292, 11302, 11324, 11334, 11344, 11355, 11369, 11386]
-group2_indices = [7065, 7079, 7089, 7111, 7121, 7131, 7142, 7156, 7173]
+print (inputs.pulling_group1)
+print (inputs.pulling_group2)
+group1_indices = inputs.pulling_group1
+group2_indices = inputs.pulling_group2
 restraint_force = openmm.CustomCentroidBondForce(2, "pull_strength*(distance(g1,g2)-equil)^2")
 restraint_force.addGroup(group1_indices)
 restraint_force.addGroup(group2_indices)
@@ -109,8 +109,6 @@ if inputs.e14scale != 1.0:
 if inputs.pcouple == 'yes':      system = barostat(system, inputs)
 if inputs.rest == 'yes':         system = restraints(system, crd, inputs)
 
-
-#integrator = GeodesicBAOABIntegrator(temperature = inputs.temp*kelvin, collision_rate = inputs.fric_coeff/picosecond, timestep =  inputs.dt*picoseconds)
 print('done')
 
 # Set platform
@@ -155,19 +153,6 @@ if args.ichk:
     with open(args.ichk, 'rb') as f:
         simulation.context.loadCheckpoint(f.read())
 
-#if args.restart_timer == True:
-#    positions = simulation.context.getState(getPositions=True)
-#    print(type(positions.Positions))
-#    velocities = simulation.context.getState(getVelocities=True)
-#    box_vectors = simulation.context.getSystem().getDefaultPeriodicBoxVectors
-#    del integrator
-#    integrator = LangevinIntegrator(inputs.temp*kelvin, inputs.fric_coeff/picosecond, inputs.dt*picoseconds)
-#    integrator = integrator 
-#    simulation2 = Simulation (top.topology, system, integrator, platform, prop)
-#    simulation.context.setPositions(positions)
-#    simulation.context.setVelocities(velocities)
-#    simulation.context.setPeriodicBoxVectors(box_vectors)
-
 if args.restart_timer == True:
     simulation.context.setTime (0 * unit.picoseconds)
 
@@ -203,7 +188,7 @@ def checkpoint_dcd  (simulation):
                           remainingTime=True, speed=True, totalSteps=inputs.nstep, separator='\t')
     )
 
-pulling_file_name = 'pulling.txt'
+pulling_file_name = inputs.pulling_out_file
 
 if args.restart_timer == True:
     with open (str(pulling_file_name),'w') as f : 
