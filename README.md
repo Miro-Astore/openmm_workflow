@@ -28,8 +28,8 @@ To perform an unbiased molecular dynamics in a slurm environment do the followin
 
 ``cp openmm_workflow/min_relax_equil.slurm . ``
 
-cp openmm_workflow/unbiased_production.slurm .``
-``
+``cp openmm_workflow/unbiased_production.slurm .``
+
  
 2. Submit the minimisation and relaxation script which will start the workflow.
 
