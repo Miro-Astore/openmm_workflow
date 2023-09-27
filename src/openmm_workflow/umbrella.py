@@ -84,7 +84,7 @@ print (inputs.pulling_group1)
 print (inputs.pulling_group2)
 group1_indices = inputs.pulling_group1
 group2_indices = inputs.pulling_group2
-restraint_force = openmm.CustomCentroidBondForce(2, "pull_strength*(distance(g1,g2)-equil)^2")
+restraint_force = openmm.CustomCentroidBondForce(2, "0.5*pull_strength*(distance(g1,g2)-equil)^2")
 restraint_force.addGroup(group1_indices)
 restraint_force.addGroup(group2_indices)
 restraint_force.addGlobalParameter('equil', 0.6)
