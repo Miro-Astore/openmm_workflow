@@ -99,10 +99,10 @@ class _OpenMMReadInputs():
                     elif input_param == 'DT':                             self.dt               = float(input_value)
                     elif input_param == 'PULL_STRENGTH':                  self.pull_strength    = float(input_value)
                     elif input_param == 'PULLING_OUT_FILE':               self.pulling_out_file = str(input_value)
-                    elif input_param == 'PULL_STEP':                      self.pull_step        = float(input_value)
+                    elif input_param == 'PULL_STEP':                      self.pull_step        = int(input_value)
                     elif input_param == 'START_PULL':                     self.start_pull       = float(input_value)
                     elif input_param == 'END_PULL':                       self.end_pull         = float(input_value)
-                    elif input_param == 'REPORTING_INTERVAL':             self.reporting_interval = float(input_value)
+                    elif input_param == 'REPORTING_INTERVAL':             self.reporting_interval = int(input_value)
                     elif input_param == 'PULLING_GROUP1':                 self.pulling_group1   = [int(item) for item in input_value.split(",") if item.strip()]
                     elif input_param == 'PULLING_GROUP2':                 self.pulling_group2   = [int(item) for item in input_value.split(",") if item.strip()]
                     elif input_param == 'NSTOUT':                         self.nstout           = int(input_value)
