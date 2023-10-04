@@ -13,7 +13,7 @@ Here you will find a conda environment which forms a workflow for running common
 
 2. Install dependencies and this environment using conda. 
 
-    `conda create env -f environment.yml`
+    `conda env create -f environment.yml`
 
 To perform an unbiased molecular dynamics in a slurm environment do the following. 
 1. Copy the necessary `.inp` files.
