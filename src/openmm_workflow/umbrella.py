@@ -87,7 +87,9 @@ group2_indices = inputs.pulling_group2
 restraint_force = openmm.CustomCentroidBondForce(2, "0.5*pull_strength*(distance(g1,g2)-equil)^2")
 restraint_force.addGroup(group1_indices)
 restraint_force.addGroup(group2_indices)
-restraint_force.addGlobalParameter('equil', 0.6)
+
+restraint_force.addGlobalParameter('equil', inputs.start_pull)
+
 print(inputs.pull_strength)
 restraint_force.addGlobalParameter('pull_strength', inputs.pull_strength)
 restraint_force.addBond([0, 1], [])
@@ -147,13 +149,16 @@ else:
     simulation.context.setPositions(crd.positions)
 
 if args.irst:
+    print('restarting from restart file' + str (args.irst))
     with open(args.irst, 'r') as f:
         simulation.context.setState(XmlSerializer.deserialize(f.read()))
 if args.ichk:
+    print('restarting from restart file' + str (args.ichk))
     with open(args.ichk, 'rb') as f:
         simulation.context.loadCheckpoint(f.read())
 
 if args.restart_timer == True:
+    print('resetting timer')
     simulation.context.setTime (0 * unit.picoseconds)
 
 # Re-wrap
