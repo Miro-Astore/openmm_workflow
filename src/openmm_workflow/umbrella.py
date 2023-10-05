@@ -195,7 +195,7 @@ def checkpoint_dcd  (simulation):
     )
 
 pulling_file_name = inputs.pulling_out_file
-print('Writing pulling coordinates to ' str(pulling_file_name))
+print('Writing pulling coordinates to ' + str(pulling_file_name))
 
 if args.restart_timer == True:
     with open (str(pulling_file_name),'w') as f : 
