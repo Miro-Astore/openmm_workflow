@@ -141,6 +141,7 @@ integrator = LangevinMiddleIntegrator(inputs.temp*kelvin, inputs.fric_coeff/pico
 simulation = Simulation(top.topology, system, integrator, platform, prop)
 
 if args.icrst:
+    print('restarting from restart file ' + str (args.icrst))
     charmm_rst = read_charmm_rst(args.icrst)
     simulation.context.setPositions(charmm_rst.positions)
     simulation.context.setVelocities(charmm_rst.velocities)
@@ -149,7 +150,7 @@ else:
     simulation.context.setPositions(crd.positions)
 
 if args.irst:
-    print('restarting from restart file' + str (args.irst))
+    print('restarting from restart file ' + str (args.irst))
     with open(args.irst, 'r') as f:
         simulation.context.setState(XmlSerializer.deserialize(f.read()))
 if args.ichk:
@@ -194,6 +195,7 @@ def checkpoint_dcd  (simulation):
     )
 
 pulling_file_name = inputs.pulling_out_file
+print('Writing pulling coordinates to ' str(pulling_file_name))
 
 if args.restart_timer == True:
     with open (str(pulling_file_name),'w') as f : 
