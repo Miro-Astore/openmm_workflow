@@ -30,7 +30,7 @@ class _OpenMMReadInputs():
         self.pull_strength    = None                                     # 
         self.pulling_group1    = None                                    # 
         self.pulling_group2    = None                                    # 
-        self.pulling_out_file = None                                     # 
+        self.pulling_out_file = 'pulling.txt'                            # 
 
         self.nstout           = 100                                       # Writing output frequency (steps)
         self.nstdcd           = 0                                         # Wrtiing coordinates trajectory frequency (steps)
