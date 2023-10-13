@@ -191,7 +191,7 @@ def checkpoint_dcd  (simulation):
         simulation.reporters.append(DCDReporter(args.odcd, inputs.nstdcd))
     simulation.reporters.append(
         StateDataReporter(sys.stdout, inputs.nstout, step=True, time=True, potentialEnergy=True, temperature=True, progress=True,
-                          remainingTime=True, speed=True, totalSteps=inputs.nstep, separator='\t')
+                          speed=True, totalSteps=inputs.nstep, separator='\t')
     )
 
 pulling_file_name = inputs.pulling_out_file
