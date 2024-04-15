@@ -1,20 +1,16 @@
 nstep       = 50000000                          # Number of steps to run
-dt          = 0.004                             # Time-step (ps)
-pull_step   = 0                          # Number of steps to run
+dt          = 0.002                             # Time-step (ps)
 
-reporting_interval = 2500                               # 
-#start_pull  = 0.6
-#end_pull    = 0.6 
-pull_strength  =  4000
-                                            
+reporting_interval = 250000                               # 
+
 nstout      = 1000                              # Writing output frequency (steps)
 nstdcd      = 25000                             # Writing coordinates trajectory frequency (steps)
                                             
 coulomb     = PME                               # Electrostatic cut-off method
 ewald_Tol   = 0.0005                            # Ewald error tolerance
-vdw         = CutoffPeriodic                    # vdW cut-off method
-lj_lrc      = yes
-r_off       = 0.9                               # Switch-off distance (nm)
+vdw         = Force-switch                    # vdW cut-off method
+r_on        =  1.0
+r_off       = 1.2                               # Switch-off distance (nm)
                                             
 temp        = 310                            # Temperature (K)
 fric_coeff  = 1                                 # Friction coefficient for Langevin dynamics
@@ -29,5 +25,4 @@ p_freq      = 100                               # Pressure coupling frequency (s
 cons        = HBonds                            # Constraints method
                                             
 rest        = no                                # Turn on/off restraints
-
 

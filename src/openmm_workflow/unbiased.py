@@ -58,14 +58,14 @@ inputs = read_inputs(args.inpfile)
 
 print('making top')
 top = read_top(args.topfile, args.fftype.upper())
-print('done')
 
 crd = read_crd(args.crdfile, args.fftype.upper())
+top = read_box(top, args.sysinfo) if args.sysinfo else gen_box(top, crd)
+params = read_params(args.toppar)
+print('done')
 
-if args.input_pdbfile is not None : 
-    crd = PDBFile(args.input_pdbfile, args.fftype.upper())
-    params = read_params(args.toppar)
-    top = read_box(top, args.sysinfo) if args.sysinfo else gen_box(top, crd)
+#if args.fftype.upper () == 'CHARMM' : 
+#    crd = PDBFile(args.input_pdbfile, args.fftype.upper())
 
 #if args.fftype.upper() == 'CHARMM':
 
@@ -87,6 +87,7 @@ if inputs.implicitSolvent:
     nboptions['gbsaModel'] = inputs.gbsamodel
 
 if   args.fftype.upper() == 'CHARMM': system = top.createSystem(params, **nboptions)
+
 elif args.fftype.upper() == 'AMBER':  
     system = top.createSystem(**nboptions)
 
@@ -177,7 +178,9 @@ print(simulation.context.getState(getEnergy=True).getPotentialEnergy())
 # Energy minimization
 if inputs.mini_nstep > 0:
     print("\nEnergy minimization: %s steps" % inputs.mini_nstep)
-    simulation.minimizeEnergy(tolerance=inputs.mini_Tol*kilojoule/mole, maxIterations=inputs.mini_nstep)
+    #simulation.minimizeEnergy(tolerance=inputs.mini_Tol*unit.kilojoules_per_mole, maxIterations=inputs.mini_nstep)
+    print()
+    simulation.minimizeEnergy(tolerance=inputs.mini_Tol,maxIterations=inputs.mini_nstep)
     print(simulation.context.getState(getEnergy=True).getPotentialEnergy())
 
 # Generate initial velocities

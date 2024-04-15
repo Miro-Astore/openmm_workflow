@@ -1,0 +1,30 @@
+mini_nstep  = 5000                              # Number of steps for minimization
+mini_Tol    = 100.0                             # Minimization energy tolerance
+                                         
+gen_vel     = yes                               # Generate initial velocities
+gen_temp    = 310                            # Temperature for generating initial velocities (K)
+                                         
+nstep       = 1000000                            # Number of steps to run
+reporting_interval = 250000                               # 
+
+dt          = 0.002                             # Time-step (ps)
+                                         
+nstout      = 250000                              # Writing output frequency (steps)
+nstdcd      = 250000                              # Writing coordinates trajectory frequency (steps)
+                                         
+coulomb     = PME                               # Electrostatic cut-off method
+ewald_Tol   = 0.0005                            # Ewald error tolerance
+vdw         = Force-switch                    # vdW cut-off method
+r_on        = 1.0
+r_off       = 1.2                               # Switch-off distance (nm)
+                                         
+temp        = 310                            # Temperature (K)
+fric_coeff  = 1                                 # Friction coefficient for Langevin dynamics
+                                         
+pcouple     = no                                # Turn on/off pressure coupling
+                                         
+cons        = AllBonds                            # Constraints method
+                                         
+rest        = yes                               # Turn on/off restraints
+fc_bb       = 400.0                             # Positional restraint force constant for protein backbone (kJ/mol/nm^2)
+fc_sc       = 40.0                              # Positional restraint force constant for protein side-chain (kJ/mol/nm^2)
